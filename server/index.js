@@ -37,10 +37,13 @@ ioserver.on('connection', (socketConnection) => {
   log('Socket Server has been started');
 
   socketConnection.on('data', (data) => {
+    let eventDate       =  new Date();
     let parsedData      = parsePortData(data);
     let formattedData   = formatPortData(parsedData);
+
     createPortLog(formattedData);
-    ioserver.emit('stats_received', formattedData);
+
+    ioserver.emit('stats_received', { data: formattedData, date: eventDate });
   });
 });
 
