@@ -24,7 +24,13 @@ const socket          = require('socket.io');
 const server          = http.createServer(app);
 const ioserver        = socket(server);
 const dbService       = new DbService({ connectionString: appConfig.db.connectionString });
-// const serialPort      = new SerialPortService(SERIAL_PORT);
+let serialPort        = null;
+
+try {
+  // serialPort = new SerialPortService(SERIAL_PORT);
+} catch(err) {
+  log(err);
+}
 
 // Establishing DB Connection
 dbService.connect();
@@ -33,20 +39,43 @@ dbService.connect();
 /**
  * Socket Connection Hanlder
  */
+// ioserver.on('connection', (socketConnection) => {
+//
+//   log('Socket Server has been started');
+//
+//   serialPort.on('data', (data) => {
+//     let eventDate       =  new Date();
+//     let parsedData      = parsePortData(data);
+//     let formattedData   = formatPortData(parsedData);
+//
+//     createPortLog(formattedData);
+//
+//     socketConnection.emit('stats_received', { data: formattedData, date: eventDate });
+  // });
+// });
+
+
 ioserver.on('connection', (socketConnection) => {
 
   log('Socket Server has been started');
 
-  socketConnection.on('data', (data) => {
+
+  setInterval(() => {
+    let dataString      = generateTestString();
     let eventDate       =  new Date();
-    let parsedData      = parsePortData(data);
+    let parsedData      = parsePortData(dataString);
     let formattedData   = formatPortData(parsedData);
 
-    createPortLog(formattedData);
+    createPortLog(parsedData);
 
-    ioserver.emit('stats_received', { data: formattedData, date: eventDate });
-  });
+    log({ receivedData: dataString, formattedData: formattedData, date: eventDate });
+    socketConnection.emit('stats_received', { data: formattedData, date: eventDate });
+
+  }, 1000);
 });
+
+
+
 
 server.listen(PORT);
 log(`The server is running on port ${PORT}`);
@@ -116,6 +145,21 @@ function log(logMessage) {
 }
 
 
+// const SKIP_STRINGS      = 14;
+// let currentStringCount  = 0;
+
+// serialPort.listen().on('data', (data) => {
+//   if(currentStringCount >= SKIP_STRINGS) {
+//     let eventDate       =  new Date();
+//     let parsedData      = parsePortData(data);
+//     let formattedData   = formatPortData(parsedData);
+//     createPortLog(formattedData);
+//   }
+//   currentStringCount++;
+//   // ioserver.emit('stats_received', { data: formattedData, date: eventDate });
+// });
+
+
 function onError(err) {
   log(err);
   process.exit(1);
@@ -131,21 +175,23 @@ function onExit() {
 /**
  * Dummy data generator
  */
-function dummyPortReader() {
-  function generateTestString() {
-    const hex           = randomString('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 50);
-    const neededData    = randomString('012g', 20);
 
-    return `${hex}${neededData}`;
-  }
+function generateTestString() {
+  const hex           = randomString('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 50);
+  const neededData    = randomString('012g', 20);
 
-  function randomString(possible, length) {
-    let text = "";
-    for (let i = 0; i < length; i++) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
+  return `${hex}${neededData}`;
+}
+
+function randomString(possible, length) {
+  let text = "";
+  for (let i = 0; i < length; i++) {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
+  return text;
+}
+
+function dummyPortReader(socket) {
 
   setInterval(() => {
     let dataString      = generateTestString();

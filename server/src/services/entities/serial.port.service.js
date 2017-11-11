@@ -10,7 +10,6 @@ module.exports = class ServialPortService extends MainService {
     this._serviceProvider = SerialPortProvider;
 
     this._serviceHandler  = new this._serviceProvider(this._port);
-    
   }
 
   listen() {
