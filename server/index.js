@@ -48,8 +48,6 @@ ioserver.on('connection', (socketConnection) => {
   });
 });
 
-
-
 server.listen(PORT);
 log(`The server is running on port ${PORT}`);
 
@@ -125,4 +123,39 @@ function onError(err) {
 
 function onExit() {
   log('Exit process');
+}
+
+
+// dummyPortReader();
+
+/**
+ * Dummy data generator
+ */
+function dummyPortReader() {
+  function generateTestString() {
+    const hex           = randomString('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', 50);
+    const neededData    = randomString('012g', 20);
+
+    return `${hex}${neededData}`;
+  }
+
+  function randomString(possible, length) {
+    let text = "";
+    for (let i = 0; i < length; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+  }
+
+  setInterval(() => {
+    let dataString      = generateTestString();
+    let eventDate       =  new Date();
+    let parsedData      = parsePortData(dataString);
+    let formattedData   = formatPortData(parsedData);
+
+    createPortLog(parsedData);
+
+    log({ receivedData: dataString, formattedData: formattedData, date: eventDate });
+
+  }, 1000);
 }
