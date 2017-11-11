@@ -52,6 +52,38 @@ ioserver.on('connection', (socketConnection) => {
 server.listen(PORT);
 log(`The server is running on port ${PORT}`);
 
+
+/**
+ * Server Middlewares
+ */
+
+/**
+ * App Middlewares
+ */
+app
+  .use('/api/v1', require('./src/routes/v1'))
+  .use(routeNotFoundHandler)
+  .use(mainErrorHandler);
+
+
+function routeNotFoundHandler(req, res, next) {
+  services.RESPONSE_SERVICE.sendErrorResponse(res, new Error('not found'));
+}
+
+function mainErrorHandler(err, req, res, next) {
+  let error = {};
+  if(err && err.status && err.message){
+    error = err;
+  } else {
+    if(!(req.app.get('env') === WorkEnvs.LOCAL)) {
+      error = 'Ooops, something went wrong';
+    } else {
+      error = err.stack || err;
+    }
+  }
+  services.RESPONSE_SERVICE.sendErrorResponse(res, error);
+}
+
 /**
  * System Event Hanlers
  */
