@@ -15,6 +15,7 @@ const appConfig           = require(`${basePath}/src/config/app`);
 const services            = require(`${basePath}/src/services`);
 const DbService           = services.DATABASE_SERVICE;
 const SerialPortService   = services.SERIAL_PORT;
+const FrequencyParser     = services.FREQUENCY_PARSER_SERVICE;
 
 const express         = require('express');
 const app             = express();
@@ -97,11 +98,11 @@ process.on('exit', onExit);
  * @returns {string|*}
  */
 function parsePortData(data) {
-  return data.toString();
+  return FrequencyParser.parse(data);
 }
 
 function formatPortData(data) {
-  return data;
+  return FrequencyParser.count(data);
 }
 
 
